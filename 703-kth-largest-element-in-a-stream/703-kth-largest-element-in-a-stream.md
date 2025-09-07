@@ -128,3 +128,75 @@ private:
     std::priority_queue<int, std::vector<int>, std::greater<int>> kth_largest_scores_;
 };
 ```
+
+## Step4-map
+
+- mapを使った解き方を改良した。
+- priority_queueを使った解き方と同じように、常にk番目の値が先頭にあるようにした。
+  - 昇順のmapに対して、スコアをkeyに、同じスコアの個数をvalueに入れていく。
+  - mapのvalueをカウントしていき、kを超えたら先頭のvalueを‐1する。
+  - 先頭のvalueが0になったら、削除する
+  - 最後に先頭を返す
+- nは入力長
+- 時間計算量：O(n * log k)
+- 空間計算量：O(k)
+
+```cpp
+class KthLargest {
+public:
+    KthLargest(int k, vector<int>& nums) : count_(0), kth_(k), kth_largest_scores_() {
+        for (int num : nums) {
+            add(num);
+        }
+    }
+    
+    int add(int val) {
+        kth_largest_scores_[val]++;
+        count_++;
+        if (count_ > kth_) {
+            auto it = kth_largest_scores_.begin();
+            it->second--;
+            count_--;
+            if (it->second == 0) {
+                kth_largest_scores_.erase(it);
+            }
+        }
+        return kth_largest_scores_.begin()->first;
+    }
+
+private:
+    int count_;
+    int kth_;
+    std::map<int, int> kth_largest_scores_;
+};
+```
+
+- multisetを使った方法
+- multisetは重複を許可するset（https://cpprefjp.github.io/reference/set/multiset.html）
+- chat gptに提案されるまで知らなかったが、multisetを使ったコードの方がmapのコードよりシンプルになっている。
+- 初見で解くときは、mapで解く方法が思いつきやすそう。
+- 時間計算量：O(n * log k)
+- 空間計算量：O(k)
+
+```cpp
+class KthLargest {
+public:
+    KthLargest(int k, vector<int>& nums) : kth_(k), kth_largest_scores_() {
+        for (int num : nums) {
+            add(num);
+        }
+    }
+    
+    int add(int val) {
+        kth_largest_scores_.insert(val);
+        if (kth_largest_scores_.size() > kth_) {
+            kth_largest_scores_.erase(kth_largest_scores_.begin());
+        }
+        return *kth_largest_scores_.begin();
+    }
+
+private:
+    int kth_;
+    std::multiset<int> kth_largest_scores_;
+};
+```
